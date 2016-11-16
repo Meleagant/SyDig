@@ -1,0 +1,236 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc} 
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amssymb}   
+\usepackage{verbatim}  
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%     Pour les figures    %%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{epsfig}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%    Pour les Algorithmes     %%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%    Pour les théorêmes et tout...    %%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{amsmath,amsthm}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%    Pour une belle mise en page     %%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setlength{\hoffset}{-18pt}         
+\setlength{\oddsidemargin}{0pt}   % Marge gauche sur pages impaires
+\setlength{\evensidemargin}{9pt}  % Marge gauche sur pages paires
+\setlength{\marginparwidth}{54pt} % Largeur de note dans la marge
+\setlength{\textwidth}{481pt}     % Largeur de la zone de texte (17cm)
+\setlength{\voffset}{-18pt}       % Bon pour DOS
+\setlength{\marginparsep}{7pt}    % Séparation de la marge
+\setlength{\topmargin}{0pt}       % Pas de marge en haut
+\setlength{\headheight}{13pt}     % Haut de page
+\setlength{\headsep}{10pt}        % Entre le haut de page et le texte
+\setlength{\footskip}{27pt}       % Bas de page + séparation
+\setlength{\textheight}{708pt}    % Hauteur de la zone de texte (25cm)
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\usepackage{lastpage}
+\renewcommand{\headrulewidth}{1pt}
+\fancyhead[L]{Rapport : Simulateur de net-List}
+\fancyhead[R]{Josselin \textsc{Giet}}
+\fancyfoot[C]{\thepage/\pageref{LastPage}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%          Raccourcis usuels         %%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%   Symboles mathématiques %%%%%%
+\newcommand{\K}{\ensuremath\mathbb{K}}
+\newcommand{\N}{\ensuremath\mathbb{N}}
+\newcommand{\Z}{\ensuremath\mathbb{Z}}
+\newcommand{\Q}{\ensuremath\mathbb{Q}}
+\newcommand{\R}{\ensuremath\mathbb{R}}
+\newcommand{\U}{\ensuremath\mathbb{U}}
+\newcommand{\C}{\ensuremath\mathbb{C}}
+\newcommand{\E}{\ensuremath\mathbb{E}}
+\newcommand{\V}{\ensuremath\mathbb{V}}
+\renewcommand{\P}{\mathcal{P}}
+
+
+%%%%%  Parenthèses & autres %%%%%%
+\newcommand{\po}{\left(} % grande parenthèse ouvrante
+\newcommand{\pf}{\right)} % grande parenthèse fermante
+\newcommand{\ao}{\left\lbrace}
+\newcommand{\af}{\right\rbrace}
+
+%%%% Raccourcis usuels   %%%%
+\newcommand{\ie}{\textit{i.e. }}
+\newcommand{\eg}{\textit{e.g. }}
+\newcommand{\cf}{\textit{cf. }}
+\newcommand{\ssi}{si et seulement si }
+\newcommand{\Rq}{\textit{Remarque : }}
+
+%%%%  Pour le module math   %%%%
+\newcommand{\et}{\text{ et }}
+\newcommand{\ou}{\text{ ou }}
+\newcommand{\car}{\text{ car }}
+\newcommand{\avec}{\text{ avec }}
+\newcommand{\si}{\text{ si }}
+\newcommand{\sinon}{\text{ sinon }}
+
+%%%%  Flêches et autres  %%%%
+\renewcommand{\le}{\leqslant}
+\renewcommand{\ge}{\geqslant}
+\renewcommand{\leq}{\leqslant}
+\renewcommand{\geq}{\geqslant}
+\renewcommand{\emptyset}{\varnothing}
+\newcommand{\la}{\leftarrow}
+\newcommand{\xla}{\xleftarrow}
+\newcommand{\ra}{\rightarrow}
+\newcommand{\xra}{\xrightarrow}
+
+\title{Rapport : Simulateur de net-List}   % Mettre le titre içi!!
+\author{Josselin \textsc{Giet}}  % Renseignerle nom de l'auteur
+\date{6 novembre 2016}    % Par défaut ,on ne met pas de date
+
+\begin{document}
+\maketitle
+
+\section{Généralités sur le simulateur}
+
+Le simulateur de net-list est écrit en OCaml et s'inspire des codes fournis dans le cadre du tp1.
+
+Pour lancer la simulation d'une net-list il faut se placer dans le répertoire envoyé par mail et construire le fichier \verb&netlist_simul.ml& au moyen de la commande :
+\begin{center}
+\verb& ocamlbuild -no-hygiene netlist_simul.byte&
+\end{center}
+
+Une fois la construction du fichier \verb& netlist_simul& effectuée, on peut simuler une net-list en exécutant la commande \verb&./netlist_simul.byte&.
+
+Dès lors la programme va demander le nom de la net-list à simuler.
+Par exemple : \verb&test/fulladder.net&.
+
+Puis le simulateur demande le nombre d'itération à effectuer.
+
+Le simulateur demande aussi la saisie de la ROM et de la RAM sous la forme d'une chaîne de \verb&0& et de \verb&1& en veillant à ce que le début de chaque mémoire corresponde au début de la  d'entrée.
+
+A partir de ce moment,le simulateur commence ses calculs.
+
+A chaque début d'étape, le simulateur procède à la saisie des inputs. 
+Il faut ici faire attention car le simulateur ne vérifie pas les inputs (\ie si une input est incorrecte le simulateur va quand même se lancer et échouera donc durant la phase de calculs)
+Une fois les calculs effectués, le simulateur affiche les outputs.
+
+\section{Description du simulateur}
+
+Le simulateur suit les étapes suivantes :
+\begin{enumerate}
+	\item "Ouverture" et lecture de la net-list à simuler, au moyen de la fonction \verb&read_file&.
+	\item Saisie de la ROM et de la RAM.
+	
+	\item Ordonnancement de la net-list au moyen de la fonction 
+\verb&schedule&, puis impression de la net-list ordonnée dans un fichier 
+\verb&filename_sch.net&. (ette phase est un copy-paste d'un fragment du fichier
+\verb&scheduler_test.ml&.
+	
+	\item Saisie des inputs (\cf supra)
+	
+	\item Calcul de chaque équation.
+	
+	\item Gestion des registres
+	
+	\item Écriture dans la RAM (On écrit donc la valeur de \verb&data& calculée à l'instant, posé comme convention).
+	
+	\item Affichage des outputs
+\end{enumerate}
+
+\Rq Les étapes 5 à 7 sont effectuées $n$ fois.
+
+\subsection{Représentation de l'environnement}
+
+Pour représenter l'environnement (\ie les valeurs déjà calculées), on utilise ne table de hashage (module \verb&Hashtbl& de OCaml) dont les clés sont de type \verb&ident& et dont les valeurs stockées sont de type \verb&value&.
+
+Les tables de hashage présent un avantage par rapport au module \verb&Map.Make& : les tables peuvent être modifiées sur place, ce qui facilite l'écriture des fonctions annexes.
+
+\subsection{Représentation des registres}
+
+La gestion des registre se font au moyen du module \verb&Stack&, pour stocker les changements de variables à effectuer en fin de phase de calcul.
+
+\subsection{Représentation de la RAM et de la ROM}
+
+La RAM et la ROM sont tous deux représentés par un \verb&bool array ref&.
+Le type \verb&array& est ici utilisé car il permet un accès en temps constant à chaque case du tableau pour la lecture et l'écriture.
+
+De même que pour les registres, on mémorise les écritures dans la RAM dans un \verb&Stack&.
+
+\section{Description des différents dossiers}
+
+\begin{figure}[H]
+\centering	
+\begin{tabular}{| l | l |}
+\hline
+Nom du fichier & Fonction \\ 
+\hline
+\verb&netlist_ast.ml& & Décrit l'arbre de syntaxe abstraite des fichier lus \\ 
+\hline
+\verb&netlist_lexer.mll& & Analyseur lexical des fichiers \verb&.net& \\
+\hline
+\verb&netlist_parser.mly& & Analseur syntaxique des fichiers\verb&.net& \\
+\hline
+\verb&netlist.ml& & Lit et écrit un fichier \verb&.net& \\
+\hline 
+\verb&netlist_printer.ml& & Sert à l'écriture d'une net-list. \\
+\hline
+\verb&graph.ml&* & Permet de détecter les cycles combinatoires \\
+\hline
+\verb&scheduler.ml&* & Ordonne la liste \verb&p.p_eqs& pour effectuer les calculs dans le bon ordre. \\
+\hline
+\verb&netlist_simul.ml&* & Fichier principal : calculs des équations, gestion des registres,RAM,ROM \\ 
+\hline
+
+\hline
+\end{tabular}
+\caption{\textsc{Inventaire des différents fichiers utilisés} }
+\end{figure}
+
+La \textsc{Fig 1} recense les différents fichiers et précise leurs rôle\footnote{Les fichiers avec un symbole * sont ceux dont le contenu a été modifié.}.
+
+\section{Commentaire et amélioration possibles}
+
+\paragraph{Incertitude sur les conventions} :
+
+A de nombreuses reprises j'ai été amené à poser des conventions de manière arbitraire.
+
+Par exemple, dans le cas du \verb&mux& j'ai choisi la convention:
+\begin{align*}
+mux \, m \, a \, b ::&= b \si m= true \\
+			& | c \sinon \\
+\end{align*}
+qui correspond à celle du polycopié de cours, bien qu'on trouve la convention inverse.
+
+De même, pour la RAM, j'ai choisi de reporter l'écriture à la fin de la phase de calcul.
+On peut aussi faire l'écriture sur place quitte à poser \verb&0& la valeur d'écriture.
+
+\paragraph{Gestion des mémoires (ROM/RAM)} :
+
+La mémoire est ici gérée de façon naïve car on ignore a priori sa taille. 
+Pour cela il faut lire une équation dans laquelle on procède à une lecture/écriture dans la mémoire.
+Et on ne peut pas déterminer où se trouve une telle équation voir même si une telle équation apparaît dans la net-list.
+
+Ainsi, le fait de saisir \textit{à la main} la net-list semble devoir être modifier car une telle saisie peut être longue et source d'erreur.
+A l'avenir (et notamment dans le cas de la montre digitale) on pourra spécifier texte dans le code qui correspondra à la mémoire à importer.
+
+\paragraph{Gestion des Inputs} :
+
+De manière plus générale le gestion des inputs doit être effectuée de façon plus rigide car si une input est incorrecte le programme ne détecte pas d'erreurs. 
+Il va donc se lancer et échouer plus tard.
+
+Un tel problème semble toutefois secondaire dans la cas d'une application à une montre digitale.
+
+\end{document}
+
