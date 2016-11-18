@@ -4,7 +4,7 @@
 
 Compilation (on se place dans le bon répertoire):
 on build le document principal par la commande :
-	ocamlbuild -no-hygiene netlist_simul.byte
+	make
 Puis on lance la simulation par :
 	./netlist_simul.byte
 Puis on demande de rentrer le nom du fichier à simuler
@@ -20,3 +20,8 @@ On demande ensuite de saisir les Inputs
 Le simulateur ne peut pas reconnaitre si l'input est valide ou non (de même pour les ROM/RAM).
 Il va donc s'éxecuter et échouer.
 
+
+
+
+Une fois les tests termiés, on supprme les fichiers crées par la commande 
+	make clean
